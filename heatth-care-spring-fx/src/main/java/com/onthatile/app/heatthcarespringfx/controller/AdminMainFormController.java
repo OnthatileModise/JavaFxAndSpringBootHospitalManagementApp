@@ -149,7 +149,7 @@ public class AdminMainFormController implements Initializable {
     @FXML
     public TableColumn<? , ?> appointments_status;
     @FXML
-    public TableColumn<? , ?> appointments_action;
+    public TableColumn<AppointmentsBean, String> appointments_action;
     @FXML
     public TableView<?> payment_tableView;
     @FXML
@@ -457,6 +457,7 @@ public class AdminMainFormController implements Initializable {
             response = httpClient.send(httpRequest , HttpResponse.BodyHandlers.ofString());
             List<AppointmentsBean> appointmentsBeanList = new ObjectMapper().readValue(response.body(), new TypeReference<>() {});
             appointmentsBeans.addAll(appointmentsBeanList);
+            appointments_tableView.setItems(appointmentsBeans);
         }catch (IOException | InterruptedException e){
             e.printStackTrace();
         }
@@ -652,6 +653,124 @@ public class AdminMainFormController implements Initializable {
         appointments_tableView.setItems(appointmentListData);
     }
 
+    public void appointmentActionButton(){
+        appointmentListData = appointmentsGetData();
+        Callback<TableColumn<AppointmentsBean, String>, TableCell<AppointmentsBean, String>> cellFactory = (TableColumn<AppointmentsBean, String> param) -> {
+            final TableCell<AppointmentsBean, String> cell = new TableCell<AppointmentsBean, String>() {
+                public void updateItem(String item, boolean empty) {
+                    super.updateItem(item, empty);
+
+                    if (empty) {
+                        setGraphic(null);
+                        setText(null);
+                    } else {
+                        Button editButton = new Button("Edit");
+                        Button removeButton = new Button("Delete");
+
+                        editButton.setStyle("-fx-background-color: linear-gradient(to bottom right, #188ba7, #306090);\n"
+                                + "    -fx-cursor: hand;\n"
+                                + "    -fx-text-fill: #fff;\n"
+                                + "    -fx-font-size: 14px;\n"
+                                + "    -fx-font-family: Arial;");
+
+                        removeButton.setStyle("-fx-background-color: linear-gradient(to bottom right, #188ba7, #306090);\n"
+                                + "    -fx-cursor: hand;\n"
+                                + "    -fx-text-fill: #fff;\n"
+                                + "    -fx-font-size: 14px;\n"
+                                + "    -fx-font-family: Arial;");
+
+                        editButton.setOnAction((ActionEvent event) -> {
+                            try {
+
+                                AppointmentsBean aData = appointments_tableView.getSelectionModel().getSelectedItem();
+                                int num = appointments_tableView.getSelectionModel().getSelectedIndex();
+
+                                if ((num - 1) < -1) {
+                                    alert.errorMessage("Please select item first");
+                                    return;
+                                }
+
+                                Data.temp_appID = String.valueOf(aData.getId());
+                                Data.temp_appName = aData.getName();
+                                Data.temp_appGender = aData.getGender();
+                                Data.temp_appAddress = aData.getContact();
+                                Data.temp_appDescription = aData.getDescription();
+                                Data.temp_appDiagnosis = aData.getDiagnosis();
+                                Data.temp_appTreatment = aData.getTreatment();
+                                Data.temp_appMobileNumber = String.valueOf(aData.getContact());
+                                Data.temp_appDoctor = aData.getDoctorsModel();
+                                Data.temp_appSpecialized = aData.getDoctorsModel().getSpecialization();
+                                Data.temp_appStatus = aData.getStatus();
+
+                                // NOW LETS CREATE FXML FOR EDIT APPOINTMENT FORM
+                                Parent root = FXMLLoader.load(Objects.requireNonNull(getClass().getClassLoader().getResource("EditAppointmentForm.fxml")));
+                                Stage stage = new Stage();
+
+                                stage.setScene(new Scene(root));
+                                stage.show();
+
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        });
+
+                        removeButton.setOnAction((ActionEvent event) -> {
+                            AppointmentsBean aData = appointments_tableView.getSelectionModel().getSelectedItem();
+                            int num = appointments_tableView.getSelectionModel().getSelectedIndex();
+
+                            if ((num - 1) < -1) {
+                                alert.errorMessage("Please select item first");
+                                return;
+                            }
+
+                            try {
+                                if (alert.confirmationMessage("Are you sure you want to delete Appointment ID: " + aData.getId() + "?")) {
+                                    HttpClient httpClient = HttpClient.newBuilder().build();
+                                    HttpRequest httpRequest = null;
+                                    try {
+                                        httpRequest = HttpRequest.newBuilder()
+                                                .POST(HttpRequest.BodyPublishers.ofString("{\"id\"" + ":"+ aData.getId()+ "}"))
+                                                .uri(new URI("http://localhost:8084/api/v1/deleteAppointment"))
+                                                .header("Content-Type" , "application/json")
+                                                .header("Accept", "application/json")
+                                                .build();
+                                    }catch (URISyntaxException e){
+                                        e.printStackTrace();
+                                    }
+                                    HttpResponse<String> response = null;
+                                    if (httpRequest != null) {
+                                        try {
+                                            response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+                                            appointmentsGetData();
+                                        } catch (IOException | InterruptedException exception) {
+                                            exception.printStackTrace();
+                                        }
+                                    }
+
+                                    appointmentsGetData();
+                                    alert.successMessage("Deleted Successfully!");
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        });
+
+                        HBox manageBtn = new HBox(editButton, removeButton);
+                        manageBtn.setAlignment(Pos.CENTER);
+                        manageBtn.setSpacing(5);
+                        setGraphic(manageBtn);
+                        setText(null);
+                    }
+                }
+            };
+            doctorDisplayData();
+            return cell;
+        };
+
+        appointments_action.setCellFactory(cellFactory);
+        appointments_tableView.setItems(appointmentListData);
+    }
+
     private void paymentDisplayData() {
     }
 
@@ -816,5 +935,9 @@ public class AdminMainFormController implements Initializable {
         // TO DISPLAY IMMEDIATELY THE DATA OF PATIENTS IN TABLEVIEW
         patientDisplayData();
         patientActionButton();
+        doctorDisplayData();
+        doctorActionButton();
+        appointmentDisplayData();
+        appointmentActionButton();
     }
 }

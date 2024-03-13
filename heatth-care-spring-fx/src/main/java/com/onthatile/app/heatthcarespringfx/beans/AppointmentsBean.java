@@ -14,4 +14,7 @@ public class AppointmentsBean {
     public String dateModified;
     public String dateDeleted;
     public String status;
+    public String diagnosis;
+    public String treatment;
+    public DoctorsBean doctorsModel;
 }

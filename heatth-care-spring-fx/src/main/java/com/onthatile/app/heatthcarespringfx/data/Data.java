@@ -1,5 +1,6 @@
 package com.onthatile.app.heatthcarespringfx.data;
 
+import com.onthatile.app.heatthcarespringfx.beans.DoctorsBean;
 import com.onthatile.app.heatthcarespringfx.beans.LoginBean;
 import org.springframework.stereotype.Component;
 
@@ -58,7 +59,7 @@ public class Data {
     public static String temp_appDescription;
     public static String temp_appDiagnosis;
     public static String temp_appTreatment;
-    public static String temp_appDoctor;
+    public static DoctorsBean temp_appDoctor;
     public static String temp_appSpecialized;
     public static String temp_appStatus;
 }

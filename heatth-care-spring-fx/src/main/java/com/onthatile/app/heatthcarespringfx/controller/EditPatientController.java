@@ -47,7 +47,7 @@ public class EditPatientController implements Initializable {
     @FXML
     public Button edit_updateBtn;
 
-    private AlertMessage alert = new AlertMessage();
+    private final AlertMessage alert = new AlertMessage();
 
     public void updateBtn() {
         if (alert.confirmationMessage("Are you sure you want to update this patient")) {

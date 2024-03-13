@@ -32,6 +32,8 @@ public class StageInitializer implements ApplicationListener<ChartApplication.St
             fxmlLoader.setControllerFactory(applicationContext::getBean);
             Parent parent = fxmlLoader.load();
             Stage stage = event.getStage();
+            stage.setMinWidth(340);
+            stage.setMinHeight(580);
             Scene scene = new Scene(parent);
             scene.getStylesheets().add( Objects.requireNonNull(getClass().getClassLoader().getResource("MainFormDesign.css")).toExternalForm());
             scene.getStylesheets().add( Objects.requireNonNull(getClass().getClassLoader().getResource("PageDesign.css")).toExternalForm());
